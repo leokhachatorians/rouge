@@ -41,7 +41,25 @@ pub fn new_map_test() -> Vec<TileType> {
     map
 }
 
-//pub fn new_map_rooms_and_corridors() -> Vec<TileType> {}
+pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
+    let mut map = vec![TileType::Wall; 80 * 50];
+
+    let room1 = Rect::new(20, 15, 10, 15);
+    let room2 = Rect::new(35, 15, 10, 15);
+
+    apply_room_to_map(&room1, &mut map);
+    apply_room_to_map(&room2, &mut map);
+
+    map
+}
+
+fn apply_room_to_map(room: &Rect, map: &mut [TileType]) {
+    for y in room.y1 + 1..=room.y2 {
+        for x in room.x1 + 1..=room.x2 {
+            map[xy_idx(x, y)] = TileType::Floor;
+        }
+    }
+}
 
 pub fn draw_map(map: &[TileType], ctx: &mut Rltk) {
     let mut y = 0;
