@@ -16,19 +16,26 @@ impl<'a> System<'a> for VisibilitySystem {
     fn run(&mut self, data: Self::SystemData) {
         let (mut map, entities, mut viewshed, pos, player) = data;
         for (entity, viewshed, pos) in (&entities, &mut viewshed, &pos).join() {
-            viewshed.visible_tiles.clear();
-            viewshed.visible_tiles = field_of_view(Point::new(pos.x, pos.y), viewshed.range, &*map);
-            viewshed
-                .visible_tiles
-                .retain(|p| p.x >= 0 && p.x < map.width && p.y >= 0 && p.y < map.height);
+            if viewshed.dirty {
+                viewshed.dirty = false;
+                viewshed.visible_tiles.clear();
+                viewshed.visible_tiles =
+                    field_of_view(Point::new(pos.x, pos.y), viewshed.range, &*map);
+                viewshed
+                    .visible_tiles
+                    .retain(|p| p.x >= 0 && p.x < map.width && p.y >= 0 && p.y < map.height);
+                let _player: Option<&Player> = player.get(entity);
 
-            // If a player, reveal what they can see
-            let player: Option<&Player> = player.get(entity);
+                if let Some(_player) = _player {
+                    for tile in map.visible_tiles.iter_mut() {
+                        *tile = false
+                    }
 
-            if let Some(_player) = player {
-                for visible in viewshed.visible_tiles.iter() {
-                    let idx = map.xy_idx(visible.x, visible.y);
-                    map.revealed_tiles[idx] = true;
+                    for visible in viewshed.visible_tiles.iter() {
+                        let idx = map.xy_idx(visible.x, visible.y);
+                        map.revealed_tiles[idx] = true;
+                        map.visible_tiles[idx] = true;
+                    }
                 }
             }
         }
